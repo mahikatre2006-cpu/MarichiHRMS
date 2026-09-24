@@ -44,10 +44,22 @@ export class AuthService {
     }
 
     // Find linked employee profile
-    const employee = await Employee.findOne({
+    let employee = await Employee.findOne({
       tenantId: user.tenantId,
       userId: user._id
     }).populate('entityId departmentId locationId');
+
+    if (!employee && user.email) {
+      employee = await Employee.findOne({
+        tenantId: user.tenantId,
+        email: user.email.toLowerCase()
+      }).populate('entityId departmentId locationId');
+
+      if (employee) {
+        employee.userId = user._id;
+        await employee.save();
+      }
+    }
 
     // Create session & tokens
     const accessTokenPayload = {
@@ -309,10 +321,22 @@ export class AuthService {
       throw new NotFoundError('User');
     }
 
-    const employee = await Employee.findOne({
+    let employee = await Employee.findOne({
       tenantId,
       userId: user._id
     }).populate('entityId departmentId locationId managerId');
+
+    if (!employee && user.email) {
+      employee = await Employee.findOne({
+        tenantId,
+        email: user.email.toLowerCase()
+      }).populate('entityId departmentId locationId managerId');
+
+      if (employee) {
+        employee.userId = user._id;
+        await employee.save();
+      }
+    }
 
     // Aggregate permissions across active roles
     const permissions = [];

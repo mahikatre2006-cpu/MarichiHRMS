@@ -64,6 +64,21 @@ export class EmployeeController {
     }
   }
 
+  static async setCredentials(req, res, next) {
+    try {
+      const { password, systemRole } = req.body;
+      const result = await EmployeeService.setCredentials(
+        req.tenantId,
+        req.params.id,
+        { password, systemRole },
+        { userId: req.user._id, employeeId: req.employeeId }
+      );
+      return sendSuccess(res, result, 'Employee login credentials updated successfully');
+    } catch (err) {
+      next(err);
+    }
+  }
+
   static async update(req, res, next) {
     try {
       const employee = await EmployeeService.update(req.tenantId, req.params.id, req.body, {

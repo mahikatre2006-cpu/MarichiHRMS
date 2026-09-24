@@ -16,7 +16,8 @@ import {
   AlertCircle,
   Play,
   DollarSign,
-  Ban
+  Ban,
+  Key
 } from 'lucide-react';
 
 export function AdminPortal() {
@@ -48,7 +49,17 @@ export function AdminPortal() {
     entityId: '',
     departmentId: '',
     locationId: '',
-    managerId: ''
+    managerId: '',
+    password: '',
+    systemRole: 'EMPLOYEE'
+  });
+
+  const [credModal, setCredModal] = useState({
+    isOpen: false,
+    employee: null,
+    password: '',
+    systemRole: 'EMPLOYEE',
+    loading: false
   });
 
   const [isDeptModalOpen, setIsDeptModalOpen] = useState(false);
@@ -222,11 +233,40 @@ export function AdminPortal() {
         entityId: entities[0]?._id || '',
         departmentId: departments[0]?._id || '',
         locationId: locations[0]?._id || '',
-        managerId: ''
+        managerId: '',
+        password: '',
+        systemRole: 'EMPLOYEE'
       });
       loadEmployees();
+      loadUsers();
     } catch (err) {
       setBanner({ type: 'error', text: err.response?.data?.error?.message || 'Failed to create employee' });
+    }
+  };
+
+  const handleUpdateCredentials = async (e) => {
+    e.preventDefault();
+    if (!credModal.employee) return;
+    setCredModal(prev => ({ ...prev, loading: true }));
+    setBanner({ type: '', text: '' });
+    try {
+      await api.post(`/employees/${credModal.employee._id}/credentials`, {
+        password: credModal.password,
+        systemRole: credModal.systemRole
+      });
+      setBanner({
+        type: 'success',
+        text: `Credentials set for ${credModal.employee.displayName} as ${credModal.systemRole}. They can now log in at /login.`
+      });
+      setCredModal({ isOpen: false, employee: null, password: '', systemRole: 'EMPLOYEE', loading: false });
+      loadEmployees();
+      loadUsers();
+    } catch (err) {
+      setBanner({
+        type: 'error',
+        text: err.response?.data?.error?.message || 'Failed to update credentials'
+      });
+      setCredModal(prev => ({ ...prev, loading: false }));
     }
   };
 
@@ -422,32 +462,72 @@ export function AdminPortal() {
                   <th className="px-6 py-3">Department</th>
                   <th className="px-6 py-3">Location</th>
                   <th className="px-6 py-3">Manager</th>
+                  <th className="px-6 py-3">Portal Access</th>
                   <th className="px-6 py-3">Status</th>
+                  <th className="px-6 py-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {employees.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-10 text-center text-xs text-[#191919]/40">
+                    <td colSpan={9} className="px-6 py-10 text-center text-xs text-[#191919]/40">
                       No employee profiles found. Click "+ Add Employee" to onboard your first team member.
                     </td>
                   </tr>
                 ) : (
-                  employees.map(emp => (
-                    <tr key={emp._id} className="hover:bg-[#F4F3F3]/80 transition">
-                      <td className="px-6 py-3.5 font-mono font-bold text-[#191919]">{emp.employeeCode}</td>
-                      <td className="px-6 py-3.5 font-semibold text-[#191919]">{emp.displayName}</td>
-                      <td className="px-6 py-3.5">{emp.designation}</td>
-                      <td className="px-6 py-3.5">{emp.departmentId?.name || '—'}</td>
-                      <td className="px-6 py-3.5">{emp.locationId?.name || '—'}</td>
-                      <td className="px-6 py-3.5">{emp.managerId?.displayName || 'Direct HR'}</td>
-                      <td className="px-6 py-3.5">
-                        <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
-                          {emp.employmentStatus}
-                        </span>
-                      </td>
-                    </tr>
-                  ))
+                  employees.map(emp => {
+                    const userRoles = emp.userId?.roles || [];
+                    const isMgr = userRoles.some(r => (typeof r === 'object' ? r.name === 'MANAGER' : r === 'MANAGER'));
+                    const isEmp = userRoles.some(r => (typeof r === 'object' ? r.name === 'EMPLOYEE' : r === 'EMPLOYEE'));
+                    const hasUser = Boolean(emp.userId);
+
+                    return (
+                      <tr key={emp._id} className="hover:bg-[#F4F3F3]/80 transition">
+                        <td className="px-6 py-3.5 font-mono font-bold text-[#191919]">{emp.employeeCode}</td>
+                        <td className="px-6 py-3.5 font-semibold text-[#191919]">{emp.displayName}</td>
+                        <td className="px-6 py-3.5">{emp.designation}</td>
+                        <td className="px-6 py-3.5">{emp.departmentId?.name || '—'}</td>
+                        <td className="px-6 py-3.5">{emp.locationId?.name || '—'}</td>
+                        <td className="px-6 py-3.5">{emp.managerId?.displayName || 'Direct HR'}</td>
+                        <td className="px-6 py-3.5">
+                          {isMgr ? (
+                            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-purple-100 text-purple-800 border border-purple-200">
+                              MANAGER
+                            </span>
+                          ) : hasUser ? (
+                            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-100 text-blue-800 border border-blue-200">
+                              EMPLOYEE
+                            </span>
+                          ) : (
+                            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-gray-100 text-gray-500 border border-gray-200">
+                              NO LOGIN
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-6 py-3.5">
+                          <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
+                            {emp.employmentStatus}
+                          </span>
+                        </td>
+                        <td className="px-6 py-3.5 text-right">
+                          <button
+                            onClick={() => setCredModal({
+                              isOpen: true,
+                              employee: emp,
+                              password: '',
+                              systemRole: isMgr ? 'MANAGER' : 'EMPLOYEE',
+                              loading: false
+                            })}
+                            className="inline-flex items-center space-x-1 px-2.5 py-1 bg-white hover:bg-gray-100 text-[#191919] border border-gray-200 rounded text-xs font-semibold shadow-xs transition"
+                            title="Set or reset login password and portal role"
+                          >
+                            <Key className="w-3 h-3 text-[#191919]/70" />
+                            <span>{hasUser ? 'Set Pass' : 'Add Login'}</span>
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>
@@ -905,6 +985,43 @@ export function AdminPortal() {
             </select>
           </div>
 
+          <div className="pt-2 border-t border-gray-100">
+            <h4 className="text-xs font-bold text-[#191919] uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <Key className="w-3.5 h-3.5 text-[#191919]" />
+              <span>Portal Access & Login Credentials</span>
+            </h4>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-[#191919]/80 mb-1">
+                  Portal Role / Permissions
+                </label>
+                <select
+                  value={empForm.systemRole}
+                  onChange={e => setEmpForm({ ...empForm, systemRole: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm bg-white"
+                >
+                  <option value="EMPLOYEE">Employee (Self-Service: Leaves & Clock-in)</option>
+                  <option value="MANAGER">Manager (Team Approvals & Self-Service)</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-[#191919]/80 mb-1">
+                  Initial Login Password
+                </label>
+                <input
+                  type="password"
+                  placeholder="Min. 6 chars (e.g. Pass@123)"
+                  value={empForm.password}
+                  onChange={e => setEmpForm({ ...empForm, password: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm font-mono"
+                />
+              </div>
+            </div>
+            <p className="text-[11px] text-[#191919]/50 mt-1.5">
+              If a password is set, the employee can immediately log in at <span className="font-mono text-[#191919]">/login</span> using their work email and this password.
+            </p>
+          </div>
+
           <div className="flex justify-end space-x-2 pt-3 border-t border-gray-100">
             <button
               type="button"
@@ -918,6 +1035,77 @@ export function AdminPortal() {
               className="px-4 py-2 bg-[#191919] text-white rounded-md text-xs font-semibold shadow-xs hover:bg-[#191919]/90"
             >
               Create Employee Profile
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Set / Reset Password Modal */}
+      <Modal
+        isOpen={credModal.isOpen}
+        onClose={() => setCredModal({ isOpen: false, employee: null, password: '', systemRole: 'EMPLOYEE', loading: false })}
+        title={`Set Login Access: ${credModal.employee?.displayName || ''}`}
+        maxWidth="max-w-md"
+      >
+        <form onSubmit={handleUpdateCredentials} className="space-y-4">
+          <div className="bg-[#F4F3F3] p-3 rounded-md border border-gray-200 text-xs space-y-1">
+            <div className="flex justify-between">
+              <span className="text-[#191919]/60">Employee:</span>
+              <span className="font-semibold text-[#191919]">{credModal.employee?.displayName} ({credModal.employee?.employeeCode})</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-[#191919]/60">Work Email:</span>
+              <span className="font-mono font-medium text-[#191919]">{credModal.employee?.email}</span>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-[#191919]/80 mb-1">
+              Portal Access Role
+            </label>
+            <select
+              value={credModal.systemRole}
+              onChange={e => setCredModal(prev => ({ ...prev, systemRole: e.target.value }))}
+              className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm bg-white"
+            >
+              <option value="EMPLOYEE">Employee (Self-Service: Leaves & Clock-in)</option>
+              <option value="MANAGER">Manager (Team Approvals & Self-Service)</option>
+            </select>
+            <p className="text-[11px] text-[#191919]/50 mt-1">
+              {credModal.systemRole === 'MANAGER'
+                ? 'Manager role grants team approval authority (leaves, regularisations) and self-service.'
+                : 'Employee role grants personal workspace access (clock in/out, apply leaves).'}
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-[#191919]/80 mb-1">
+              New Password
+            </label>
+            <input
+              required
+              type="password"
+              placeholder="Min. 6 characters"
+              value={credModal.password}
+              onChange={e => setCredModal(prev => ({ ...prev, password: e.target.value }))}
+              className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm font-mono"
+            />
+          </div>
+
+          <div className="flex justify-end space-x-2 pt-3 border-t border-gray-100">
+            <button
+              type="button"
+              onClick={() => setCredModal({ isOpen: false, employee: null, password: '', systemRole: 'EMPLOYEE', loading: false })}
+              className="px-4 py-2 border border-gray-200 text-[#191919]/70 rounded-md text-xs font-semibold hover:bg-[#F4F3F3]"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={credModal.loading}
+              className="px-4 py-2 bg-[#191919] text-white rounded-md text-xs font-semibold shadow-xs hover:bg-[#191919]/90 disabled:opacity-50"
+            >
+              {credModal.loading ? 'Saving...' : 'Save & Enable Access'}
             </button>
           </div>
         </form>

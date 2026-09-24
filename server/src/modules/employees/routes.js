@@ -14,5 +14,6 @@ router.get('/:id', authorize(PERMISSIONS.EMPLOYEE_READ, { paramIsEmployeeId: tru
 router.patch('/:id', authorize(PERMISSIONS.EMPLOYEE_UPDATE, { paramIsEmployeeId: true }), EmployeeController.update);
 router.patch('/:id/status', authorize(PERMISSIONS.EMPLOYEE_DEACTIVATE, { paramIsEmployeeId: true }), EmployeeController.updateStatus);
 router.patch('/:id/transfer', authorize(PERMISSIONS.EMPLOYEE_UPDATE, { paramIsEmployeeId: true }), EmployeeController.transferEmployee);
+router.post('/:id/credentials', authorize(PERMISSIONS.EMPLOYEE_UPDATE, { paramIsEmployeeId: true }), EmployeeController.setCredentials);
 
 export default router;
