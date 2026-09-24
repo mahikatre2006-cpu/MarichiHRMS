@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MarichiHR — System Architecture & Core Engines</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    code, pre, .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+  </style>
+</head>
+<body class="bg-[#F8FAFC] text-[#0F172A] p-4 sm:p-8 md:p-12 antialiased selection:bg-slate-900 selection:text-white leading-relaxed">
+
+  <div class="max-w-5xl mx-auto space-y-10">
+
+    <!-- Document Header -->
+    <header class="bg-white border border-slate-200 rounded-3xl p-8 sm:p-10 shadow-xs">
+      <div class="inline-flex items-center gap-2 px-3 py-1 bg-slate-100 rounded-full text-xs font-semibold text-slate-700 uppercase tracking-wider mb-3">
+        <span>MarichiHR Enterprise Foundation</span>
+      </div>
+      <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+        Core System Engines &amp; Architecture Layers
+      </h1>
+      <p class="text-base sm:text-lg text-slate-600 mt-3 max-w-3xl leading-relaxed">
+        An in-depth, layer-by-layer technical and operational breakdown of the six core pillars: Organization Structure, Employee Master, Single Sign-On, 5-Level RBAC, Attendance Engine, and Statutory Leave Ledger.
+      </p>
+    </header>
+
+    <!-- LAYER 1: ORGANISATION HIERARCHY -->
+    <section class="bg-white border border-slate-200 rounded-3xl p-8 sm:p-10 shadow-xs space-y-6">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+        <div class="flex items-center gap-3">
+          <span class="w-8 h-8 rounded-xl bg-blue-600 text-white font-bold flex items-center justify-center text-sm shadow-xs">1</span>
+          <h2 class="text-xl sm:text-2xl font-bold text-slate-900">Organisation Hierarchy (The Skeleton)</h2>
+        </div>
+        <span class="text-xs font-mono font-semibold px-3 py-1 bg-blue-50 text-blue-700 rounded-full border border-blue-100">Tiered Multi-Tenant Structure</span>
+      </div>
+
+      <p class="text-sm sm:text-base text-slate-600 leading-relaxed">
+        Before adding staff or tracking attendance, the platform builds a four-tier corporate tree. Every data record is permanently anchored to this hierarchy, making cross-company data leakage physically impossible.
+      </p>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 pt-2">
+        <div class="p-5 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+          <span class="text-xs font-bold text-blue-700 uppercase tracking-wider block">Tier 1 · Tenant</span>
+          <h3 class="text-base font-bold text-slate-900">Organisation</h3>
+          <p class="text-xs text-slate-600 leading-relaxed">The root tenant domain (e.g. <em>Acme Group</em>). Enforces strict database isolation across all collections.</p>
+        </div>
+
+        <div class="p-5 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+          <span class="text-xs font-bold text-blue-700 uppercase tracking-wider block">Tier 2 · Legal</span>
+          <h3 class="text-base font-bold text-slate-900">Legal Entity</h3>
+          <p class="text-xs text-slate-600 leading-relaxed">Incorporated company (e.g. <em>Acme India Pvt Ltd</em>). Governs corporate currency (INR), tax jurisdiction, and fiscal year.</p>
+        </div>
+
+        <div class="p-5 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+          <span class="text-xs font-bold text-blue-700 uppercase tracking-wider block">Tier 3 · Physical</span>
+          <h3 class="text-base font-bold text-slate-900">Location / Branch</h3>
+          <p class="text-xs text-slate-600 leading-relaxed">Physical workplace (e.g. <em>Mumbai HQ</em>). Holds GPS latitude, longitude, and geofence punch radius (e.g. 300m).</p>
+        </div>
+
+        <div class="p-5 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+          <span class="text-xs font-bold text-blue-700 uppercase tracking-wider block">Tier 4 · Team</span>
+          <h3 class="text-base font-bold text-slate-900">Department</h3>
+          <p class="text-xs text-slate-600 leading-relaxed">Functional unit (e.g. <em>Engineering, Sales</em>). Linked to Department Heads for approval workflows.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- LAYER 2: EMPLOYEE MASTER DATA -->
+    <section class="bg-white border border-slate-200 rounded-3xl p-8 sm:p-10 shadow-xs space-y-6">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+        <div class="flex items-center gap-3">
+          <span class="w-8 h-8 rounded-xl bg-purple-600 text-white font-bold flex items-center justify-center text-sm shadow-xs">2</span>
+          <h2 class="text-xl sm:text-2xl font-bold text-slate-900">Employee Master Data (The People)</h2>
+        </div>
+        <span class="text-xs font-mono font-semibold px-3 py-1 bg-purple-50 text-purple-700 rounded-full border border-purple-100">Single Source of Truth</span>
+      </div>
+
+      <p class="text-sm sm:text-base text-slate-600 leading-relaxed">
+        The Employee Master ties each person to their organizational position, employment terms, and reporting structure.
+      </p>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5 pt-2">
+        <div class="p-5 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+          <h3 class="text-base font-bold text-slate-900">1. Permanent Identifiers</h3>
+          <ul class="text-xs text-slate-600 space-y-1.5 list-disc list-inside">
+            <li><strong>Employee Code:</strong> Immutable code (e.g., <code class="bg-white px-1.5 py-0.5 rounded border border-slate-200">ACME-001</code>).</li>
+            <li><strong>Official Email:</strong> Used for authentication and notifications.</li>
+            <li><strong>Designation &amp; Joining Date:</strong> Determines seniority &amp; tenure.</li>
+          </ul>
+        </div>
+
+        <div class="p-5 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+          <h3 class="text-base font-bold text-slate-900">2. Managerial Tree (<code class="text-xs">managerId</code>)</h3>
+          <ul class="text-xs text-slate-600 space-y-1.5 list-disc list-inside">
+            <li>Direct link to their supervisor's profile.</li>
+            <li><strong>No Circular Loops:</strong> System prevents Person A from reporting to Person B if B reports to A.</li>
+            <li>Powers approval queues and live team presence.</li>
+          </ul>
+        </div>
+
+        <div class="p-5 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+          <h3 class="text-base font-bold text-slate-900">3. Lifecycle &amp; User Link</h3>
+          <ul class="text-xs text-slate-600 space-y-1.5 list-disc list-inside">
+            <li><strong>Status:</strong> <span class="bg-emerald-50 text-emerald-700 font-semibold px-1.5 py-0.5 rounded text-[11px]">ACTIVE</span>, <span class="bg-amber-50 text-amber-700 font-semibold px-1.5 py-0.5 rounded text-[11px]">PROBATION</span>, or <span class="bg-rose-50 text-rose-700 font-semibold px-1.5 py-0.5 rounded text-[11px]">TERMINATED</span>.</li>
+            <li>Binds to login credentials and system roles.</li>
+            <li>Preserves immutable audit trail upon offboarding.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- LAYER 3: SSO & AUTHENTICATION -->
+    <section class="bg-white border border-slate-200 rounded-3xl p-8 sm:p-10 shadow-xs space-y-6">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+        <div class="flex items-center gap-3">
+          <span class="w-8 h-8 rounded-xl bg-indigo-600 text-white font-bold flex items-center justify-center text-sm shadow-xs">3</span>
+          <h2 class="text-xl sm:text-2xl font-bold text-slate-900">SSO &amp; Authentication (Access Layer)</h2>
+        </div>
+        <span class="text-xs font-mono font-semibold px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full border border-indigo-100">OpenID Connect + JWT</span>
+      </div>
+
+      <p class="text-sm sm:text-base text-slate-600 leading-relaxed">
+        Zero password friction for employees, enterprise-grade identity federation for IT administrators.
+      </p>
+
+      <div class="p-6 bg-slate-900 text-white rounded-2xl space-y-4">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-mono text-indigo-400 font-semibold uppercase tracking-wider">The Canonical Callback Pattern</span>
+          <span class="text-xs text-slate-400 font-mono">One route for all providers</span>
+        </div>
+        <code class="block p-3.5 bg-slate-800 rounded-xl text-emerald-400 text-sm font-mono overflow-x-auto">
+          GET /api/v1/auth/sso/:provider/callback
+        </code>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs text-slate-300 pt-2">
+          <div>• <code>/sso/google/callback</code></div>
+          <div>• <code>/sso/microsoft/callback</code></div>
+          <div>• <code>/sso/okta/callback</code></div>
+          <div>• <code>/sso/keycloak/callback</code></div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs text-slate-600">
+        <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl">
+          <strong class="text-slate-900 block mb-1">1. Provider Verification</strong>
+          Google or Microsoft verifies corporate identity and returns a verified email token.
+        </div>
+        <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl">
+          <strong class="text-slate-900 block mb-1">2. Employee Matching</strong>
+          MarichiHR matches the email against the active Employee directory within the tenant.
+        </div>
+        <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl">
+          <strong class="text-slate-900 block mb-1">3. Token Issuance</strong>
+          Issues a signed 15-min Tenant JWT access token and a secure HttpOnly refresh cookie.
+        </div>
+      </div>
+    </section>
+
+    <!-- LAYER 4: 5-LEVEL RBAC SCOPE HIERARCHY -->
+    <section class="bg-white border border-slate-200 rounded-3xl p-8 sm:p-10 shadow-xs space-y-6">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+        <div class="flex items-center gap-3">
+          <span class="w-8 h-8 rounded-xl bg-amber-600 text-white font-bold flex items-center justify-center text-sm shadow-xs">4</span>
+          <h2 class="text-xl sm:text-2xl font-bold text-slate-900">5-Level RBAC Scope Hierarchy (Security Gate)</h2>
+        </div>
+        <span class="text-xs font-mono font-semibold px-3 py-1 bg-amber-50 text-amber-700 rounded-full border border-amber-100">Granular Authorization</span>
+      </div>
+
+      <p class="text-sm sm:text-base text-slate-600 leading-relaxed">
+        A user's role grants permission to act, but their <strong>Scope</strong> determines <em>whose</em> records they are permitted to touch.
+      </p>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs sm:text-sm border border-slate-200 rounded-xl overflow-hidden">
+          <thead class="bg-slate-100 text-slate-700 uppercase font-bold text-[11px] tracking-wider border-b border-slate-200">
+            <tr>
+              <th class="p-4">Level</th>
+              <th class="p-4">Scope</th>
+              <th class="p-4">Who Gets It?</th>
+              <th class="p-4">Operational Boundary</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <tr class="hover:bg-slate-50">
+              <td class="p-4 font-mono font-bold text-slate-500">Level 1</td>
+              <td class="p-4 font-mono font-bold text-amber-700">SELF</td>
+              <td class="p-4 font-medium text-slate-900">Staff Employee</td>
+              <td class="p-4 text-slate-600">Can view and touch only their own attendance, punch clock, and leave balance.</td>
+            </tr>
+            <tr class="hover:bg-slate-50">
+              <td class="p-4 font-mono font-bold text-slate-500">Level 2</td>
+              <td class="p-4 font-mono font-bold text-amber-700">TEAM</td>
+              <td class="p-4 font-medium text-slate-900">People Manager</td>
+              <td class="p-4 text-slate-600">Direct and indirect reports down the managerial tree, plus active delegations.</td>
+            </tr>
+            <tr class="hover:bg-slate-50">
+              <td class="p-4 font-mono font-bold text-slate-500">Level 3</td>
+              <td class="p-4 font-mono font-bold text-amber-700">DEPARTMENT</td>
+              <td class="p-4 font-medium text-slate-900">Department Head</td>
+              <td class="p-4 text-slate-600">All employees within the assigned department (e.g. Engineering).</td>
+            </tr>
+            <tr class="hover:bg-slate-50">
+              <td class="p-4 font-mono font-bold text-slate-500">Level 4</td>
+              <td class="p-4 font-mono font-bold text-amber-700">ENTITY</td>
+              <td class="p-4 font-medium text-slate-900">Country Director</td>
+              <td class="p-4 text-slate-600">All staff across all branches of that specific legal corporation.</td>
+            </tr>
+            <tr class="hover:bg-slate-50">
+              <td class="p-4 font-mono font-bold text-slate-500">Level 5</td>
+              <td class="p-4 font-mono font-bold text-amber-700">ORGANISATION</td>
+              <td class="p-4 font-medium text-slate-900">HR / Enterprise Admin</td>
+              <td class="p-4 text-slate-600">Full tenant-wide access across all entities, branches, and departments.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- LAYER 5: ATTENDANCE MANAGEMENT ENGINE -->
+    <section class="bg-white border border-slate-200 rounded-3xl p-8 sm:p-10 shadow-xs space-y-6">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+        <div class="flex items-center gap-3">
+          <span class="w-8 h-8 rounded-xl bg-emerald-600 text-white font-bold flex items-center justify-center text-sm shadow-xs">5</span>
+          <h2 class="text-xl sm:text-2xl font-bold text-slate-900">Attendance Management Engine (Punches &amp; Shifts)</h2>
+        </div>
+        <span class="text-xs font-mono font-semibold px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full border border-emerald-100">Real-Time Verification</span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+        <div class="p-6 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
+          <h3 class="text-base font-bold text-slate-900">1. GPS Geofencing (Haversine Distance)</h3>
+          <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+            When clocking in, the system reads device coordinates and runs the Haversine formula against the branch's GPS coordinates. If within 300 meters, punch is verified.
+          </p>
+        </div>
+
+        <div class="p-6 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
+          <h3 class="text-base font-bold text-slate-900">2. Shift Calculation &amp; Grace Period</h3>
+          <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+            Shift defined as 09:00 – 18:00 with a 15-minute morning grace. Punches up to 09:15 AM are marked "On Time". Break deductions apply only when worked time exceeds 4–5 hours.
+          </p>
+        </div>
+
+        <div class="p-6 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
+          <h3 class="text-base font-bold text-slate-900">3. Punch Regularisation Workflow</h3>
+          <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+            Missed a punch due to a client visit or biometric glitch? Employee submits correction request with reason. Manager approves $\rightarrow$ system automatically recalculates hours and status.
+          </p>
+        </div>
+
+        <div class="p-6 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
+          <h3 class="text-base font-bold text-slate-900">4. Month-End Attendance Lock</h3>
+          <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+            On the 30th/31st, HR Admin clicks <strong>Lock Attendance</strong>. All punch records for that month freeze into an immutable state. No edits allowed before payroll execution.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- LAYER 6: LEAVE MANAGEMENT ENGINE -->
+    <section class="bg-white border border-slate-200 rounded-3xl p-8 sm:p-10 shadow-xs space-y-6">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+        <div class="flex items-center gap-3">
+          <span class="w-8 h-8 rounded-xl bg-rose-600 text-white font-bold flex items-center justify-center text-sm shadow-xs">6</span>
+          <h2 class="text-xl sm:text-2xl font-bold text-slate-900">Leave Management Engine (Statutory Ledger)</h2>
+        </div>
+        <span class="text-xs font-mono font-semibold px-3 py-1 bg-rose-50 text-rose-700 rounded-full border border-rose-100">Double-Entry Accounting</span>
+      </div>
+
+      <p class="text-sm sm:text-base text-slate-600 leading-relaxed">
+        Treats employee leave balances with the exact same rigor as monetary bank ledgers:
+      </p>
+
+      <div class="p-6 bg-slate-900 text-white rounded-2xl space-y-3 font-mono text-xs">
+        <div class="text-rose-400 font-bold uppercase tracking-wider">Double-Entry Transaction Ledger (`LeaveLedgerEntry`)</div>
+        <div class="text-slate-300">
+          • CREDIT: Annual Allocation (+18.0 days, Ref: #INIT-2026)<br>
+          • DEBIT: Approved Vacation (-2.0 days, Ref: #REQ-9812)<br>
+          • REVERT: Cancelled Request (+2.0 days restored, Ref: #CAN-9812)<br>
+          • ADJUSTMENT: HR Comp Off Credit (+1.0 day, Ref: #ADJ-4412)<br>
+          ➔ <strong>Closing Available Balance = Sum of Verified Ledger Entries</strong>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 text-xs text-slate-600">
+        <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5">
+          <strong class="text-slate-900 text-sm block">10 Statutory Types</strong>
+          Paid Leave (PL), Sick Leave (SL), Casual Leave (CL), Maternity, Paternity, Bereavement, Leave Without Pay (LWP), Comp Off, Sabbatical, Custom.
+        </div>
+
+        <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5">
+          <strong class="text-slate-900 text-sm block">Attendance Auto-Sync</strong>
+          When a manager approves leave, the system deducts days from the ledger AND sets daily attendance to <code>ON_LEAVE</code>.
+        </div>
+
+        <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5">
+          <strong class="text-slate-900 text-sm block">Approval Delegation</strong>
+          When a manager takes vacation, they assign temporary approval power to a peer manager for a set date range.
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="text-center text-xs text-slate-400 py-4 border-t border-slate-200">
+      MarichiHR Enterprise Architecture · Phase 1 Production Engine Specification
+    </footer>
+
+  </div>
+
+</body>
+</html>

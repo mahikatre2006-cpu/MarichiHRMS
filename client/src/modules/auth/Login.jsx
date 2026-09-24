@@ -56,7 +56,8 @@ export function Login() {
   };
 
   const handleSsoClick = (provider) => {
-    window.location.href = `/api/v1/auth/sso/${provider}`;
+    const apiBase = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/+$/, '');
+    window.location.href = `${apiBase}/api/v1/auth/sso/${provider}`;
   };
 
   return (

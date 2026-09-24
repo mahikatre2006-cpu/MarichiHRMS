@@ -1,7 +1,9 @@
 import axios from 'axios';
 
+const apiBase = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/+$/, '');
+
 const api = axios.create({
-  baseURL: '/api/v1',
+  baseURL: `${apiBase}/api/v1`,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json'
@@ -48,7 +50,7 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const refreshRes = await axios.post('/api/v1/auth/refresh', {}, { withCredentials: true });
+        const refreshRes = await axios.post(`${apiBase}/api/v1/auth/refresh`, {}, { withCredentials: true });
         const newToken = refreshRes.data.data.accessToken;
         localStorage.setItem('marichi_token', newToken);
         api.defaults.headers.common.Authorization = `Bearer ${newToken}`;
