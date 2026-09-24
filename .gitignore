@@ -26,6 +26,7 @@ server/tests/
 *.spec.js
 **/mock/**
 **/mocks/**
+*/docs/**
 
 # Seed data & scripts
 server/src/seed/
