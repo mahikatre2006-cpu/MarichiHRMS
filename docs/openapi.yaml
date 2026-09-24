@@ -1,0 +1,533 @@
+openapi: 3.0.3
+info:
+  title: MarichiHR HRMS API
+  version: 1.0.0
+  description: >
+    Production-grade REST API specification for MarichiHR HRMS Phase 1.
+    Includes Multi-Tenant Architecture, 5-Level RBAC Scopes, Enterprise OIDC/SSO,
+    Attendance with Geofencing and Locking, and Leave State Machine.
+servers:
+  - url: http://localhost:5000/api/v1
+    description: Local Development Server
+  - url: https://api.hrms.yourcompany.com/api/v1
+    description: Production API Server
+
+paths:
+  /auth/login:
+    post:
+      summary: Authenticate with email & password
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: admin@marichi.com
+                password:
+                  type: string
+                  format: password
+                  example: Admin@12345
+      responses:
+        '200':
+          description: Successfully authenticated
+        '401':
+          description: Invalid email or password
+
+  /auth/refresh:
+    post:
+      summary: Rotate refresh token & issue new access token
+      tags: [Authentication]
+      responses:
+        '200':
+          description: Token refreshed successfully
+        '401':
+          description: Refresh token invalid or expired
+
+  /auth/me:
+    get:
+      summary: Retrieve current authenticated profile & roles
+      tags: [Authentication]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Profile retrieved
+
+  /auth/sso/{provider}:
+    get:
+      summary: Generate OIDC authorization redirect URL
+      tags: [SSO]
+      parameters:
+        - in: path
+          name: provider
+          required: true
+          schema:
+            type: string
+            enum: [google, microsoft, okta, keycloak]
+      responses:
+        '200':
+          description: Authorization URL generated
+
+  /auth/sso/{provider}/callback:
+    get:
+      summary: Canonical SSO callback for identity provider
+      tags: [SSO]
+      parameters:
+        - in: path
+          name: provider
+          required: true
+          schema:
+            type: string
+            enum: [google, microsoft, okta, keycloak]
+        - in: query
+          name: code
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: state
+          required: false
+          schema:
+            type: string
+      responses:
+        '302':
+          description: Redirects to client auth callback with session token
+
+  /employees:
+    get:
+      summary: List employees filtered by 5-level RBAC scope
+      tags: [Employees]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Employee list retrieved
+    post:
+      summary: Create/onboard new employee
+      tags: [Employees]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [firstName, lastName, email, entityId, departmentId, locationId]
+              properties:
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                entityId:
+                  type: string
+                departmentId:
+                  type: string
+                locationId:
+                  type: string
+                employeeCode:
+                  type: string
+                managerId:
+                  type: string
+      responses:
+        '201':
+          description: Employee created successfully
+
+  /attendance/punch/in:
+    post:
+      summary: Record clock-in with geofence validation and debounce
+      tags: [Attendance]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                source:
+                  type: string
+                  enum: [WEB, MOBILE, BIOMETRIC]
+                  default: WEB
+                latitude:
+                  type: number
+                longitude:
+                  type: number
+      responses:
+        '201':
+          description: Clock-in recorded successfully
+        '409':
+          description: Duplicate punch detected within 60 seconds
+        '422':
+          description: Period locked or geofence boundary violation
+
+  /attendance/punch/out:
+    post:
+      summary: Record clock-out with geofence validation and debounce
+      tags: [Attendance]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                source:
+                  type: string
+                  enum: [WEB, MOBILE, BIOMETRIC]
+                  default: WEB
+                latitude:
+                  type: number
+                longitude:
+                  type: number
+      responses:
+        '200':
+          description: Clock-out recorded successfully
+        '409':
+          description: Duplicate punch detected within 60 seconds
+        '422':
+          description: Period locked or geofence boundary violation
+
+  /attendance/locks:
+    get:
+      summary: List attendance locks
+      tags: [Attendance]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Locks retrieved
+    post:
+      summary: Lock attendance for month and entity
+      tags: [Attendance]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [entityId, year, month]
+              properties:
+                entityId:
+                  type: string
+                year:
+                  type: integer
+                month:
+                  type: integer
+                  minimum: 1
+                  maximum: 12
+                reason:
+                  type: string
+      responses:
+        '201':
+          description: Attendance period locked
+
+  /leave/requests:
+    get:
+      summary: List leave requests filtered by RBAC scope
+      tags: [Leave]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Leave requests retrieved
+    post:
+      summary: Submit leave application
+      tags: [Leave]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [leaveTypeId, startDate, endDate, reason]
+              properties:
+                leaveTypeId:
+                  type: string
+                startDate:
+                  type: string
+                  format: date
+                endDate:
+                  type: string
+                  format: date
+                reason:
+                  type: string
+                isHalfDay:
+                  type: boolean
+                halfDaySession:
+                  type: string
+                  enum: [FIRST_HALF, SECOND_HALF]
+      responses:
+        '201':
+          description: Leave request submitted
+        '409':
+          description: Overlapping leave request exists
+        '422':
+          description: Insufficient leave balance or invalid dates
+
+  /leave/requests/{id}/approve:
+    post:
+      summary: Approve leave request (enforces non-self approval)
+      tags: [Leave]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Leave request approved
+        '403':
+          description: Self-approval violation
+        '422':
+          description: Invalid state transition
+
+  /leave/requests/{id}/cancel:
+    post:
+      summary: Cancel leave request (restores balance & ledger)
+      tags: [Leave]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Leave request cancelled successfully
+
+  /auth/logout-all:
+    post:
+      summary: Revoke all active sessions across all devices
+      tags: [Authentication]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Logged out from all devices successfully
+
+  /employees/{id}/transfer:
+    patch:
+      summary: Transfer employee to new department, location, manager, or entity
+      tags: [Employee]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                newDepartmentId: { type: string }
+                newLocationId: { type: string }
+                newManagerId: { type: string }
+                newEntityId: { type: string }
+                transferDate: { type: string, format: date }
+                reason: { type: string }
+      responses:
+        '200':
+          description: Employee transferred successfully
+
+  /attendance/punch/device-sync:
+    post:
+      summary: Ingest batch punches from Biometric, QR, and NFC terminals
+      tags: [Attendance]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [punches]
+              properties:
+                deviceId: { type: string }
+                punches:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      employeeCode: { type: string }
+                      employeeId: { type: string }
+                      type: { type: string, enum: [IN, OUT] }
+                      source: { type: string, enum: [BIOMETRIC, QR, NFC, WEB, MOBILE] }
+                      timestamp: { type: string, format: date-time }
+                      rawEventId: { type: string }
+      responses:
+        '201':
+          description: Device punches ingested successfully
+
+  /leave/team-calendar:
+    get:
+      summary: View team leave schedule and calendar
+      tags: [Leave]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: startDate
+          schema: { type: string, format: date }
+        - in: query
+          name: endDate
+          schema: { type: string, format: date }
+      responses:
+        '200':
+          description: Team calendar retrieved
+
+  /leave/delegations:
+    get:
+      summary: List approval delegations
+      tags: [Leave]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Delegations retrieved
+    post:
+      summary: Create approval delegation
+      tags: [Leave]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [delegateeEmployeeId, startDate, endDate]
+              properties:
+                delegateeEmployeeId: { type: string }
+                startDate: { type: string, format: date }
+                endDate: { type: string, format: date }
+                reason: { type: string }
+      responses:
+        '201':
+          description: Delegation created successfully
+
+  /leave/blackouts:
+    get:
+      summary: List blackout periods
+      tags: [Leave]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Blackout periods retrieved
+    post:
+      summary: Create blackout period
+      tags: [Leave]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, startDate, endDate]
+              properties:
+                name: { type: string }
+                startDate: { type: string, format: date }
+                endDate: { type: string, format: date }
+                reason: { type: string }
+      responses:
+        '201':
+          description: Blackout period created successfully
+
+  /leave/accruals/run:
+    post:
+      summary: Run monthly leave accrual engine
+      tags: [Leave]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Accruals processed successfully
+
+  /leave/carry-forward/run:
+    post:
+      summary: Run year-end carry forward engine
+      tags: [Leave]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Carry forward processed successfully
+
+  /leave/encash:
+    post:
+      summary: Encash employee leave balance
+      tags: [Leave]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [employeeId, leaveTypeId, days]
+              properties:
+                employeeId: { type: string }
+                leaveTypeId: { type: string }
+                days: { type: number }
+                reason: { type: string }
+      responses:
+        '200':
+          description: Leave encashed successfully
+
+  /leave/escalations/run:
+    post:
+      summary: Run SLA auto-escalation engine for overdue approvals
+      tags: [Leave]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Escalations evaluated successfully
+
+  /audit/logs:
+    get:
+      summary: View immutable audit log records
+      tags: [Audit]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Audit logs retrieved
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

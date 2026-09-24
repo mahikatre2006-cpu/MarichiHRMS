@@ -1,0 +1,52 @@
+# Dependencies
+node_modules/
+*/node_modules/
+client/node_modules/
+server/node_modules/
+
+# Environment configurations & templates (no envs, no env.example)
+.env
+.env.*
+*.env
+.env.example
+env.example
+*.env.example
+server/.env
+server/.env.example
+client/.env
+client/.env.example
+
+# Tests & mock data
+tests/
+test/
+*/tests/
+*/test/
+server/tests/
+*.test.js
+*.spec.js
+**/mock/**
+**/mocks/**
+
+# Seed data & scripts
+server/src/seed/
+seed/
+seeds/
+**/seed/**
+
+# Build outputs & scratch artifacts
+dist/
+build/
+client/dist/
+*.pdf
+generate_phase1_manual_pdf.py
+
+# Logs & System
+*.log
+npm-debug.log*
+yarn-debug.log*
+.DS_Store
+Thumbs.db
+.system_generated/
+.gemini/
+.idea/
+.vscode/

@@ -1,0 +1,16 @@
+{
+  "name": "marichihr",
+  "version": "1.0.0",
+  "description": "MarichiHR - Enterprise Human Resource Management System (Phase 1)",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev:server": "npm --prefix server run dev",
+    "dev:client": "npm --prefix client run dev",
+    "start": "npm --prefix server start",
+    "test": "npm --prefix server test",
+    "seed": "npm --prefix server run seed"
+  },
+  "author": "Marichi Labs",
+  "license": "UNLICENSED"
+}
