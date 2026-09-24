@@ -26,13 +26,16 @@ server/tests/
 *.spec.js
 **/mock/**
 **/mocks/**
-*/docs/**
 
 # Seed data & scripts
 server/src/seed/
 seed/
 seeds/
 **/seed/**
+
+# Documentation
+docs/
+**/docs/**
 
 # Build outputs & scratch artifacts
 dist/
